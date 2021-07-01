@@ -1,5 +1,6 @@
 #!/bin/sh
 #set -x
+#Oktober 2019 by Anna Jegen
 noise=noise.tmp
 pil=`echo " 201.pick 202.pick 203.pick 204.pick 205.pick 206.pick 208.pick 209.pick 210.pick 211.pick 212.pick 213.pick 214.pick
 216.pick 217.pick 218.pick 219.pick 220.pick 221.pick 222.pick 223.pick 224.pick 225.pick 226.pick
