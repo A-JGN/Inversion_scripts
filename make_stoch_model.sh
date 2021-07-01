@@ -46,5 +46,5 @@ for i in $(seq $nmodels)
 	echo 'created smesh' $smesh."$i"
 	sleep 13s ###random numbers are created using the time, sleep is added to ensure values differ significantly
 done
-./run_monte_inv $nmodels
+#./run_monte_inv $nmodels
 #rm $noise."$i"
