@@ -1,0 +1,106 @@
+#!/bin/sh
+id=1
+nmodels=$1
+reflList=reflList.dat
+averageSmesh=p02-average-smesh-run1.dat
+averageRefl=p02-average-refl-run1.dat
+smesh_folder=stoch_modells/gen_models
+x_max=43.4
+z_max=12
+dx=0.05
+Inversions=3
+smeshList=smeshList.dat ##remeber: if you change the name here also adapt it in exclude_badModels.sh
+rm $smeshList
+###make folder: Mean-model-run-1/ and copy tt.dat and to_grid into new folder
+###average reflection can be calculated then num_nodes has to be set and list of refls created analogues to smeshList
+### korenaga_inv_all should be set to the wanted inversion parameters
+##if you only have v.in and not smeshs add a make_velfile call  
+if [ $nmodels -lt 9 ]
+then
+	for i in $(seq $nmodels)
+	do echo model "$i" 
+	#cp tt.dat tt_m0"$i".dat
+	#cp v.in."$i" v.in.m0"$i" 
+	#cp refl.dat refl_m0"$i".dat 
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat
+	cp smesh-start.dat smesh_start_m0"$i".dat
+	./korenaga_inv.sh m0"$i"
+	./make_residu.sh tt.dat smesh-start.dat m0"$i" 0
+	./final_plot.sh m0"$i"
+	done
+elif [[ $nmodels -gt 9  && $nmodels -lt 99 ]]
+then
+	for i in $(seq 9)
+	do echo model "$i" 
+	#cp tt.dat tt_m0"$i".dat
+	#cp v.in."$i" v.in.m0"$i" 
+	#cp refl.dat refl_m0"$i".dat
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat
+	cp smesh-start.dat smesh_start_m0"$i".dat
+	./korenaga_inv.sh m0"$i"
+	./make_residu.sh tt.dat smesh-start.dat m0"$i" 0
+	./final_plot.sh m0"$i"
+	done
+	
+	for i in $(seq 10 $nmodels)
+	do echo model "$i" 
+	#cp tt.dat tt_m"$i".dat
+	#cp v.in."$i" v.in.m"$i" 
+	#cp refl.dat refl_m"$i".dat
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat
+	cp smesh-start.dat smesh_start_m"$i".dat
+	./korenaga_inv.sh m"$i"
+	./make_residu.sh tt.dat smesh-start.dat m"$i" 0
+	./final_plot.sh m"$i"
+	done
+elif [ $nmodels -gt 99 ]
+then
+	for i in $(seq 9)
+	do echo model "$i" 
+	#cp tt.dat tt_m00"$i".dat
+	#cp v.in."$i" v.in.m00"$i" 
+	#cp refl.dat refl_m00"$i".dat
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat 
+	cp smesh-start.dat smesh_start_m00"$i".dat
+	./korenaga_inv.sh m00"$i"
+	./make_residu.sh tt.dat smesh-start.dat m00"$i" 0
+	./final_plot.sh m00"$i"
+	done
+	
+	for i in $(seq 10 99)
+	do echo model "$i" 
+	#cp tt.dat tt_m0"$i".dat
+	#cp v.in."$i" v.in.m0"$i" 
+	#cp refl.dat refl_m0"$i".dat
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat
+	cp smesh-start.dat smesh_start_m0"$i".dat
+	./korenaga_inv.sh m0"$i"
+	./make_residu.sh tt.dat smesh-start.dat m0"$i" 0
+	./final_plot.sh m0"$i"
+	done
+	
+	for i in $(seq 100 $nmodels)
+	do echo model "$i" 
+	#cp tt.dat tt_m"$i".dat
+	#cp v.in."$i" v.in.m"$i" 
+	#cp refl.dat refl_m"$i".dat
+	cp $smesh_folder/smesh-start.dat."$i" smesh-start.dat
+	cp smesh-start.dat smesh_start_m"$i".dat
+	./korenaga_inv.sh m"$i" 0
+	./make_residu.sh tt.dat smesh-start.dat m"$i" 0
+	./final_plot.sh m"$i"
+	done
+
+fi
+mv out_m**.smesh.5.1 stoch_modells/Mean-model-run-1/
+mv log_all.m* stoch_modells/Mean-model-run-1/logfiles/
+#cp out_all.m0**.refl.6.1 stoch_modells/Mean-model-run-1/
+cd stoch_modells/Mean-model-run-1/
+./exclude_badModels.sh $nmodels $Inversions
+stat_smesh -L$smeshList  -Ca -V> $averageSmesh
+#stat_smesh -L$reflList -Ca -R$num_nodes > $averageRefl
+tt_forward -M$averagesmesh -V0 -Gtt.dat -N5/10/1/8/1e-4/1e-5 -Rrays.meanModel-1 -Itmp_meanModel-1.v5 >ttcalc_fin.$id.dat
+
+./togrid.sh tmp_meanModel-1.v5 0 $x_max 0 $z_max $dx $dx tmp5.meanModel-1.grd
+cd ../
+./Harmonic_mean_average.sh

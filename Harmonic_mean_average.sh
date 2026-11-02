@@ -1,6 +1,5 @@
 #!/bin/sh
 #set -x
-##--------this script calculates a weighted harmonic average of all the inversion results created by run_monte_inversion.sh. The smesh of each final inversion result is weighted with the inverse of its RMS.
 logList=Mean-model-run-1/LogfileList.dat
 smeshList=Mean-model-run-1/smeshList.dat
 megaList=harmonic_mean/List_log_smeshs.dat
@@ -22,12 +21,11 @@ harmean_path=harmonic_mean
 x_max=43.4
 z_max=12
 dx=0.05
-rm $harmean_smesh
 
+rm $harmean_smesh
 ###initiate sum_v_values with zeros
 edit_smesh $ref_smesh -Cm0.0/seafloor.xz >tmp0
 awk 'NR>4 {print $0}' tmp0 >$sum_v_values
-
 ###determine number of depth nodes:
 N_znodes=$(awk '{if (NR==4) print NF}' $ref_smesh)
 
@@ -45,17 +43,14 @@ do
 	echo $j>tmp
 	logfile=$(awk '{print $2}' tmp)
 	smeshfile=$(awk '{print $1}' tmp)
-
 	##calc RMS weight of current inversion run
 	w=$(awk 'NR == (('$Iteration' + '$headersize')) {print 1/$4}' $model_path/logfiles/$logfile)
 	echo '******************************'$w
-
 	###create wi/weight smesh
 	edit_smesh $ref_smesh -Cm$w/$seafloor >$wi_smesh
 	
 	## calculate wi/final vel. smesh, beware geometrie rows (1-4) not copied, but added to file later
 	awk 'NR>4 {print '$w'/$1,'$w'/$2, '$w'/$3, '$w'/$4, '$w'/$5, '$w'/$6, '$w'/$7, '$w'/$8, '$w'/$9, '$w'/$10, '$w'/$11, '$w'/$12}' $model_path/$smeshfile >velocity-values.dat
-
 	###add current wi/smesh to rolling sum:
 	paste $sum_v_values velocity-values.dat >tmp1
 	awk '{print $1+$(1+'$N_znodes'), $2+$(2+'$N_znodes'), $3+$(3+'$N_znodes'), $4+$(4+'$N_znodes'), $5+$(5+'$N_znodes'), $6+$(6+'$N_znodes'), $7+$(7+'$N_znodes'), $8+$(8+'$N_znodes'), $9+$(9+'$N_znodes'), $10+$(10+'$N_znodes'), $11+$(11+'$N_znodes'), $12+$(12+'$N_znodes')}' tmp1 > $sum_v_values
@@ -90,6 +85,6 @@ tt_forward -Mstd_smesh_fin.$id.dat -V0 -Gtt.dat -N5/10/1/8/1e-4/1e-5 -Rrays.std.
 ./togrid.sh tmp_$id.v5 0 $x_max 0 $z_max $dx $dx tmp5.$id.grd
 ./togrid.sh std_$id.v1 0 $x_max 0 $z_max $dx $dx std_ini.$id.grd
 ./togrid.sh std_$id.v5 0 $x_max 0 $z_max $dx $dx std_fin.$id.grd
-./Visualise_harmonic_average.sh
+./visualise_model.sh
 
 ####geometrie does not change during inversion
