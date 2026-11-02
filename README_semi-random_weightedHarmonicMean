@@ -1,0 +1,7 @@
+READ ME
+explanation to "Monte Carlo" type inversion
+The sequence of programms creates a predefined number of starting models by semi-random pertubation of an initial 1D model. Semi-random means to express that the initial 1D model is only perturbed with in a predefined range of depth and velocities per layer. Currently, models that can be created consist of 3 layers under the seafloor. As the 1D model is "hung" under a bathymetric profile for the generation of the models
+The created starting models are also 1D models and are subsequently inverted individually, using the same inversion parameters. Bad inversions with insufficient chi^2 and rms values can be excluded from the final averaging using exclude_badModels.sh
+A mean model and thus the final model  can be calculated from the resulting inverted models using harmonic_mean_average.sh
+
+Programm is started using make_stoch_models.sh, which then calls run_monte_inversion.sh which calls exclude_badModels.sh as well as standard inversion codes and finally calls Harmonic_mean_average.sh
